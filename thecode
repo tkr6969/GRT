@@ -1,0 +1,210 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "Great Roblox Tools",
+   Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
+   LoadingTitle = "Loading...",
+   LoadingSubtitle = "idk what to put here",
+   ShowText = "GRT", -- for mobile users to unhide Rayfield, change if you'd like
+   Theme = "DarkBlue", -- Check https://docs.sirius.menu/rayfield/configuration/themes
+
+   ToggleUIKeybind = "k", -- The keybind to toggle the UI visibility (string like "K" or Enum.KeyCode)
+
+   DisableRayfieldPrompts = false,
+   DisableBuildWarnings = false, -- Prevents Rayfield from emitting warnings when the script has a version mismatch with the interface.
+
+   -- ScriptID = "sid_xxxxxxxxxxxx", -- Your Script ID from developer.sirius.menu — enables analytics, managed keys, and script hosting
+
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = nil, -- Create a custom folder for your hub/game
+      FileName = "GRT"
+   },
+
+   Discord = {
+      Enabled = false, -- Prompt the user to join your Discord server if their executor supports it
+      Invite = "noinvitelink", -- The Discord invite code, do not include Discord.gg/. E.g. Discord.gg/ABCD would be ABCD
+      RememberJoins = true -- Set this to false to make them join the Discord every time they load it up
+   },
+
+   KeySystem = true, -- Set this to true to use our key system
+   KeySettings = {
+      Title = "GRT Keys Menu",
+      Subtitle = "Main authorization part for GRT",
+      Note = "You can get keys in pastebin link", -- Use this to tell the user how to get a key
+      FileName = "GRT Keys", -- It is recommended to use something unique, as other scripts using Rayfield may overwrite your key file
+      SaveKey = true, -- The user's key will be saved, but if you change the key, they will be unable to use your script
+      GrabKeyFromSite = true, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
+      Key = {"https://pastebin.com/raw/kmv58aBN"} -- List of keys that the system will accept, can be RAW file links (pastebin, github, etc.) or simple strings ("hello", "key22")
+   }
+})
+
+Rayfield:Notify({
+   Title = "GRT has been executed",
+   Content = "yay!",
+   Duration = 5,
+   Image = "check",
+})
+
+local Tab = Window:CreateTab("Main", "user") -- Title
+local Section = Tab:CreateSection("Client")
+
+local Input = Tab:CreateInput({
+   Name = "Speed",
+   CurrentValue = "16",
+   PlaceholderText = "Type Speed...",
+   RemoveTextAfterFocusLost = false,
+   Flag = "Speed",
+   Callback = function(SpeedValue)
+        -- LocalScript placed in StarterPlayerScripts
+        local player = game.Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local humanoid = character:WaitForChild("Humanoid")
+
+        -- Set speed to 100
+        humanoid.WalkSpeed = SpeedValue
+   end,
+})
+
+local Input = Tab:CreateInput({
+   Name = "Jumppower",
+   CurrentValue = "50",
+   PlaceholderText = "Type Jumppower...",
+   RemoveTextAfterFocusLost = false,
+   Flag = "Jumppower",
+   Callback = function(JumppowerValue)
+        local player = game.Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local humanoid = character:WaitForChild("Humanoid")
+        
+        humanoid.UseJumpPower = true
+        humanoid.JumpPower = JumppowerValue
+   end,
+})
+
+local Toggle = Tab:CreateToggle({
+   Name = "Touch Fling",
+   CurrentValue = false,
+   Flag = "TouchFling", 
+   Callback = function(TouchFlingToggle)
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        	local RunService = game:GetService("RunService")
+        	local Players = game:GetService("Players")
+        	
+        	local function fling()
+        		local Player1 = Players.LocalPlayer
+        		local character, hrp, velo, movel = nil, nil, nil, 0.1
+        	
+        		while TouchFlingToggle do
+        			RunService.Heartbeat:Wait()
+        			character = Player1.Character
+        			hrp = character and character:FindFirstChild("HumanoidRootPart")
+        	
+        			if hrp then
+        				velo = hrp.Velocity -- saves current 
+        				hrp.Velocity = velo * 10000 + Vector3.new(0, 10000, 0) -- ur orginal velocity times 10000 and adds 10000 to the y axis
+        				RunService.RenderStepped:Wait() 
+        				hrp.Velocity = velo -- sets it back cus you fly with them
+        				RunService.Stepped:Wait()
+        			end
+        		end
+        	end
+        	
+        	fling()
+   end,
+})
+
+local Section = Tab:CreateSection("Visual")
+
+local Toggle = Tab:CreateToggle({
+   Name = "ESP",
+   CurrentValue = false,
+   Flag = "ESP", -- A flag is the identifier for the configuration file; make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(ESPToggle)
+        local Players = game:GetService("Players")
+        local LocalPlayer = Players.LocalPlayer
+        local enabled = ESPToggle
+        
+        local function createESP(player)
+            if player == LocalPlayer then return end
+        
+            local function applyHighlight(character)
+                if character:FindFirstChild("ESPHighlight") then
+                    character.ESPHighlight:Destroy()
+                end
+        
+                if not enabled then return end
+        
+                local highlight = Instance.new("Highlight")
+                highlight.Name = "ESPHighlight"
+                highlight.FillColor = Color3.fromRGB(255, 0, 0)
+                highlight.FillTransparency = 0.5
+                highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                highlight.OutlineTransparency = 0
+                highlight.Adornee = character
+                highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                highlight.Parent = character
+            end
+        
+            if player.Character then
+                applyHighlight(player.Character)
+            end
+            player.CharacterAdded:Connect(applyHighlight)
+        end
+        
+        for _, player in ipairs(Players:GetPlayers()) do
+            createESP(player)
+        end
+        
+        Players.PlayerAdded:Connect(createESP)
+   end,
+})
+
+local Section = Tab:CreateSection("Tools")
+
+local Button = Tab:CreateButton({
+    Name = "Give TP Tool",
+    Callback = function()
+        local player = game.Players.LocalPlayer
+        
+
+        local tpTool = Instance.new("Tool")
+        tpTool.Name = "Teleport Tool"
+        tpTool.RequiresHandle = false
+        
+
+        local handle = Instance.new("Part")
+        handle.Name = "Handle"
+        handle.Size = Vector3.new(1, 1, 1)
+        handle.Transparency = 1
+        handle.CanCollide = false
+        handle.Parent = tpTool
+        
+
+        tpTool.Activated:Connect(function()
+            local mouse = player:GetMouse()
+            local character = player.Character
+            if character and character:FindFirstChild("HumanoidRootPart") then
+                local targetPos = mouse.Hit.p
+                character.HumanoidRootPart.CFrame = CFrame.new(targetPos + Vector3.new(0, 3, 0))
+            end
+        end)
+        
+
+        tpTool.Parent = player.Backpack
+    end,
+})
+
+local Tab = Window:CreateTab("Misc", "hammer") -- Title
+local Section = Tab:CreateSection("Test")
+
+local Input = Tab:CreateInput({
+   Name = "Print Text",
+   CurrentValue = "",
+   PlaceholderText = "Type Text...",
+   RemoveTextAfterFocusLost = false,
+   Flag = "Print",
+   Callback = function(PrintText)
+       print(PrintText)
+   end,
+})
